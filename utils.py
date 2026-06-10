@@ -1,4 +1,3 @@
-
 import os
 import streamlit as st
 import time
@@ -6,9 +5,8 @@ import re
 from datetime import datetime
 from supabase import create_client
 from groq import Groq, APIError, APIConnectionError, RateLimitError
-from dotenv import load_dotenv
 
-load_dotenv()
+
 
 # Custom exceptions
 class GroqAPIError(Exception):
@@ -20,22 +18,32 @@ class SupabaseError(Exception):
 class ValidationError(Exception):
     pass
 
-# Configuration class
+# Configuration class - UPDATED for Streamlit Cloud + Local
 class Config:
     @staticmethod
     def get_supabase_url():
+        # Priority 1: Streamlit secrets (cloud deployment)
+        if hasattr(st, 'secrets') and 'SUPABASE_URL' in st.secrets:
+            return st.secrets["SUPABASE_URL"]
+        # Priority 2: Environment variables (local development)
         return os.getenv("SUPABASE_URL")
     
     @staticmethod
     def get_supabase_key():
+        if hasattr(st, 'secrets') and 'SUPABASE_KEY' in st.secrets:
+            return st.secrets["SUPABASE_KEY"]
         return os.getenv("SUPABASE_KEY")
     
     @staticmethod
     def get_groq_api_key():
+        if hasattr(st, 'secrets') and 'GROQ_API_KEY' in st.secrets:
+            return st.secrets["GROQ_API_KEY"]
         return os.getenv("GROQ_API_KEY")
     
     @staticmethod
     def get_groq_model():
+        if hasattr(st, 'secrets') and 'GROQ_MODEL' in st.secrets:
+            return st.secrets["GROQ_MODEL"]
         return os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 
 # Supabase Manager
@@ -51,11 +59,11 @@ class SupabaseManager:
             key = Config.get_supabase_key()
             if url and key:
                 self.client = create_client(url, key)
-                print("Supabase client initialized successfully")  # Debug
+                print("Supabase client initialized successfully")
             else:
-                print("Supabase credentials missing")  # Debug
+                print("Supabase credentials missing")
         except Exception as e:
-            print(f"Failed to initialize Supabase: {str(e)}")  # Debug
+            print(f"Failed to initialize Supabase: {str(e)}")
     
     def is_healthy(self):
         if not self.client:
@@ -64,7 +72,7 @@ class SupabaseManager:
             self.client.table(self.table_name).select("count").limit(1).execute()
             return True
         except Exception as e:
-            print(f"Health check failed: {str(e)}")  # Debug
+            print(f"Health check failed: {str(e)}")
             return False
     
     def save_submission(self, profile, recommendation, max_retries=3):
@@ -130,11 +138,11 @@ class GroqManager:
             api_key = Config.get_groq_api_key()
             if api_key:
                 self.client = Groq(api_key=api_key)
-                print("Groq client initialized successfully")  # Debug
+                print("Groq client initialized successfully")
             else:
-                print("Groq API key missing")  # Debug
+                print("Groq API key missing")
         except Exception as e:
-            print(f"Failed to initialize Groq: {str(e)}")  # Debug
+            print(f"Failed to initialize Groq: {str(e)}")
     
     def is_healthy(self):
         if not self.client:
@@ -148,7 +156,7 @@ class GroqManager:
             )
             return True
         except Exception as e:
-            print(f"Groq health check failed: {str(e)}")  # Debug
+            print(f"Groq health check failed: {str(e)}")
             return False
     
     def get_recommendation(self, profile, max_retries=3, timeout=30):
@@ -158,8 +166,7 @@ class GroqManager:
         prompt = f"""Based on the following user profile, suggest ONE specific recommendation from these categories:
 
 Choose the MOST APPROPRIATE from:
-1. A SPECIFIC Certification Program (e.g., "AWS Certified Solutions Architect", "PMP",
- "Google Data Analytics Professional Certificate", "Certified Scrum Master", "Microsoft Azure Fundamentals")
+1. A SPECIFIC Certification Program (e.g., "AWS Certified Solutions Architect", "PMP", "Google Data Analytics Professional Certificate", "Certified Scrum Master", "Microsoft Azure Fundamentals")
 2. DBA (Doctor of Business Administration)
 3. PhD (Doctor of Philosophy) in a specific field
 4. Honorary Doctorate
@@ -175,8 +182,7 @@ IMPORTANT RULES:
 - Match the certification to their profession and career goal
 - Consider their current qualification level
 - For PhD/DBA, suggest a specific field of study based on their goal
-- Respond with ONLY the recommendation name (e.g., "PMP Certification" or "PhD in Computer Science")
-commendation name (e.g., "PhD")."""
+- Respond with ONLY the recommendation name (e.g., "PMP Certification" or "PhD in Computer Science")"""
         
         for attempt in range(max_retries):
             try:
@@ -184,7 +190,7 @@ commendation name (e.g., "PhD")."""
                     model=self.model,
                     messages=[{"role": "user", "content": prompt}],
                     temperature=0.3,
-                    max_tokens=20,
+                    max_tokens=50,  # Increased for specific certification names
                     timeout=timeout
                 )
                 return response.choices[0].message.content.strip()
@@ -228,7 +234,7 @@ class Validator:
         
         return True, "Valid"
 
-# Health checker
+# Health checker - UPDATED messages
 class HealthChecker:
     def __init__(self, supabase_manager, groq_manager):
         self.supabase = supabase_manager
@@ -245,8 +251,8 @@ class HealthChecker:
         if health["supabase"]:
             st.success("Supabase: Connected")
         else:
-            st.error("Supabase: Disconnected - Check URL/Key in .env")
+            st.error("Supabase: Disconnected - Check secrets in Streamlit Cloud")
         if health["groq"]:
             st.success("Groq API: Ready")
         else:
-            st.error("Groq API: Unavailable - Check API key in .env")
+            st.error("Groq API: Unavailable - Check API key in secrets")
