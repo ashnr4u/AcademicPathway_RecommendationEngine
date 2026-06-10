@@ -2,6 +2,11 @@
 
 An AI-powered recommendation system that suggests the most suitable academic pathway (Certification Program, DBA, PhD, or Honorary Doctorate) based on a user's education, professional experience, current role, and career goals.
 
+Live Link:
+```
+https://academicpathwayrecommendationengine.streamlit.app/
+```
+
 ## Features
 
 * AI-powered academic pathway recommendations using Groq LLM
