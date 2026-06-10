@@ -166,7 +166,7 @@ class GroqManager:
         prompt = f"""Based on the following user profile, suggest ONE specific recommendation from these categories:
 
 Choose the MOST APPROPRIATE from:
-1. A SPECIFIC Certification Program (e.g., "AWS Certified Solutions Architect", "PMP", "Google Data Analytics Professional Certificate", "Certified Scrum Master", "Microsoft Azure Fundamentals")
+1. A SPECIFIC Certification Program 
 2. DBA (Doctor of Business Administration)
 3. PhD (Doctor of Philosophy) in a specific field
 4. Honorary Doctorate
@@ -178,7 +178,8 @@ Profile:
 - Career Goal: {profile['goal']}
 
 IMPORTANT RULES:
-- If suggesting a Certification Program, name a REAL, SPECIFIC certification (not just "Certification Program")
+- If suggesting a Certification Program, name a REAL, SPECIFIC certification
+ (not just "Certification Program")
 - Match the certification to their profession and career goal
 - Consider their current qualification level
 - For PhD/DBA, suggest a specific field of study based on their goal"""        
