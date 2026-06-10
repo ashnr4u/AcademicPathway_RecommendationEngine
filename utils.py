@@ -181,9 +181,7 @@ IMPORTANT RULES:
 - If suggesting a Certification Program, name a REAL, SPECIFIC certification (not just "Certification Program")
 - Match the certification to their profession and career goal
 - Consider their current qualification level
-- For PhD/DBA, suggest a specific field of study based on their goal
-- Respond with ONLY the recommendation name (e.g., "PMP Certification" or "PhD in Computer Science")"""
-        
+- For PhD/DBA, suggest a specific field of study based on their goal"""        
         for attempt in range(max_retries):
             try:
                 response = self.client.chat.completions.create(
