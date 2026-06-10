@@ -100,5 +100,3 @@ streamlit run app.py
 ## Author
 
 Ashutosh Narayan
-# AcademicPathway_RecommendationEngine
-# AcademicPathway_RecommendationEngine
